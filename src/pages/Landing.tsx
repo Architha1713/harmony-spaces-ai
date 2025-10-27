@@ -1,17 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Home, Palette } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80 relative overflow-hidden">
+      <Navigation />
       {/* Ambient glow effects */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-glow/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
       
-      <div className="relative z-10 container mx-auto px-4 py-20">
+      <div className="relative z-10 container mx-auto px-4 py-20 pt-32">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
           <div className="flex items-center justify-center gap-3 mb-6">

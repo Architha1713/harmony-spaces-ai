@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, RefreshCw, Sparkles, Home, Lightbulb, Palette } from "lucide-react";
+import { Download, RefreshCw, Sparkles, Home, Lightbulb, Palette, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 interface DesignData {
   id: string;
@@ -27,10 +28,17 @@ const DesignOutput = () => {
   const location = useLocation();
   const { toast } = useToast();
   const [design, setDesign] = useState<DesignData | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     if (location.state) {
-      setDesign(location.state as DesignData);
+      const designData = location.state as DesignData;
+      setDesign(designData);
+      
+      // Check if this design is already saved
+      const savedDesigns = JSON.parse(localStorage.getItem("zenspace-designs") || "[]");
+      const isAlreadySaved = savedDesigns.some((d: DesignData) => d.id === designData.id);
+      setIsSaved(isAlreadySaved);
     } else {
       navigate("/design");
     }
@@ -56,19 +64,36 @@ const DesignOutput = () => {
     navigate("/design");
   };
 
+  const handleSave = () => {
+    if (!design) return;
+
+    const savedDesigns = JSON.parse(localStorage.getItem("zenspace-designs") || "[]");
+    const alreadyExists = savedDesigns.some((d: DesignData) => d.id === design.id);
+
+    if (alreadyExists) {
+      toast({
+        title: "Already Saved",
+        description: "This design is already in your gallery",
+      });
+      return;
+    }
+
+    savedDesigns.push(design);
+    localStorage.setItem("zenspace-designs", JSON.stringify(savedDesigns));
+    setIsSaved(true);
+
+    toast({
+      title: "Design Saved",
+      description: "Your design has been saved to the gallery",
+    });
+  };
+
   if (!design) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80 py-12">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/design")}
-          className="mb-8 hover:bg-primary/10"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Design
-        </Button>
+      <Navigation />
+      <div className="container mx-auto px-4 max-w-6xl pt-24">
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Image Preview */}
@@ -88,6 +113,15 @@ const DesignOutput = () => {
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaved}
+                variant="outline"
+                className="flex-1 border-primary/30 hover:border-primary/50 hover:bg-primary/5 rounded-xl disabled:opacity-50"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSaved ? "Saved" : "Save"}
               </Button>
               <Button
                 onClick={handleRegenerate}

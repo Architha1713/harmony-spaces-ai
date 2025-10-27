@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2, Eye, Sparkles } from "lucide-react";
+import { Trash2, Eye, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 interface SavedDesign {
   id: string;
@@ -45,15 +46,8 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80 py-12">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/")}
-          className="mb-8 hover:bg-primary/10"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
+      <Navigation />
+      <div className="container mx-auto px-4 max-w-7xl pt-24">
 
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">

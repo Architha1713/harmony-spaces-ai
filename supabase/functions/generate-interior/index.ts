@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { roomType, aesthetic, colorScheme, budget, mood, notes } = await req.json();
+    const { roomType, aesthetic, colorScheme, budget, mood, notes, uploadedImage } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -39,12 +39,52 @@ serve(async (req) => {
       industrial: "industrial loft style with exposed elements and metal accents",
     };
 
-    const colorPrompt = colorScheme ? ` featuring ${colorScheme} colors` : "";
+    // Color scheme mapping for better prompts
+    const colorSchemeMap: Record<string, string> = {
+      "warm-neutrals": "warm neutral colors including beige, cream, and tan",
+      "cool-neutrals": "cool neutral palette with gray, white, and silver tones",
+      "black-white": "contemporary black and white color scheme with modern painted walls and black/white decorative elements",
+      "navy-gold": "sophisticated navy blue and gold accents",
+      "emerald-brass": "emerald green with brass metallic accents",
+      "blush-gray": "soft blush pink paired with gray tones",
+      "terracotta-sage": "warm terracotta and sage green",
+      "charcoal-mustard": "charcoal gray with mustard yellow accents",
+      "burgundy-cream": "rich burgundy and cream",
+      "teal-copper": "teal blue with copper accents",
+      "forest-natural": "forest green with natural wood tones",
+      "lavender-white": "soft lavender and crisp white",
+    };
+
+    const colorPrompt = colorScheme ? ` featuring ${colorSchemeMap[colorScheme] || colorScheme}` : "";
     const moodPrompt = moodStyles[mood] || "";
     const aestheticPrompt = aestheticPrompts[aesthetic] || aesthetic;
     const notesPrompt = notes ? ` Additional details: ${notes}.` : "";
 
-    const imagePrompt = `Create a photorealistic interior design rendering of a ${roomType.replace("-", " ")} in ${aestheticPrompt} style${colorPrompt}. The design should evoke a ${moodPrompt} mood. Ultra high resolution, professional interior photography, 16:9 aspect ratio.${notesPrompt}`;
+    let messageContent;
+    let imagePrompt;
+
+    if (uploadedImage) {
+      // If user uploaded an image, use it for reference
+      imagePrompt = `Transform this room into a ${aestheticPrompt} style${colorPrompt}. The design should evoke a ${moodPrompt} mood. Keep the room layout similar but completely redesign it with new furniture, decor, and styling. Ultra high resolution, professional interior photography.${notesPrompt}`;
+      
+      messageContent = [
+        {
+          type: "text",
+          text: imagePrompt,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: uploadedImage,
+          },
+        },
+      ];
+    } else {
+      // Generate from scratch
+      imagePrompt = `Create a photorealistic interior design rendering of a ${roomType.replace("-", " ")} in ${aestheticPrompt} style${colorPrompt}. The design should evoke a ${moodPrompt} mood. Ultra high resolution, professional interior photography, 16:9 aspect ratio.${notesPrompt}`;
+      
+      messageContent = imagePrompt;
+    }
 
     console.log("Generating image with prompt:", imagePrompt);
 
@@ -60,7 +100,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: imagePrompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
