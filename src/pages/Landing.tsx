@@ -20,7 +20,7 @@ const Landing = () => {
             <div className="p-3 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 animate-glow">
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            <h1 className="text-6xl font-bold text-primary drop-shadow-lg">
               ZenSpace AI
             </h1>
           </div>
