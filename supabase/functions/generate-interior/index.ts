@@ -65,7 +65,7 @@ serve(async (req) => {
 
     if (uploadedImage) {
       // If user uploaded an image, use it for reference
-      imagePrompt = `Transform this room into a ${aestheticPrompt} style${colorPrompt}. The design should evoke a ${moodPrompt} mood. Keep the room layout similar but completely redesign it with new furniture, decor, and styling. Ultra high resolution, professional interior photography.${notesPrompt}`;
+      imagePrompt = `Redesign this exact room maintaining its original layout, dimensions, and architectural features (walls, windows, doors, ceiling). Apply ${aestheticPrompt} style${colorPrompt} while preserving the room's structure. Transform with new furniture placement that matches the original layout, updated decor, and styling that creates a ${moodPrompt} atmosphere. Keep all structural elements like walls, floor plan, and window positions identical to the original. Ultra high resolution, professional interior photography.${notesPrompt}`;
       
       messageContent = [
         {
