@@ -16,11 +16,16 @@ const Landing = () => {
       <div className="relative z-10 container mx-auto px-4 py-20 pt-32">
         {/* Header */}
         <div className="text-center mb-16 animate-fade-in">
-          <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="flex items-center justify-center gap-3 mb-6 relative">
+            {/* Animated sparkles */}
+            <Sparkles className="w-4 h-4 text-primary absolute -left-8 top-2 animate-pulse" style={{ animationDelay: "0s" }} />
+            <Sparkles className="w-3 h-3 text-primary-glow absolute -right-6 top-0 animate-pulse" style={{ animationDelay: "1s" }} />
+            <Sparkles className="w-3 h-3 text-accent absolute left-12 -top-2 animate-pulse" style={{ animationDelay: "2s" }} />
+            
             <div className="p-3 rounded-2xl bg-primary/10 backdrop-blur-sm border border-primary/20 animate-glow">
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-6xl font-bold text-primary drop-shadow-lg">
+            <h1 className="text-6xl font-bold text-primary drop-shadow-lg animate-fade-in hover:scale-105 transition-transform duration-300">
               ZenSpace AI
             </h1>
           </div>
