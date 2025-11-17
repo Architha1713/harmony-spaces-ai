@@ -8,6 +8,7 @@ import { Loader2, Sparkles, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
+import { saveDesign } from "@/lib/designStorage";
 
 const DesignInput = () => {
   const navigate = useNavigate();
@@ -72,20 +73,28 @@ const DesignInput = () => {
       if (error) throw error;
 
       if (data?.image) {
-        // Save to localStorage
-        const savedDesigns = JSON.parse(localStorage.getItem("zenspace-designs") || "[]");
         const newDesign = {
           id: Date.now().toString(),
-          ...formData,
+          roomType: formData.roomType,
+          aesthetic: formData.aesthetic,
+          mood: formData.mood,
           image: data.image,
-          suggestions: data.suggestions,
           timestamp: new Date().toISOString(),
         };
-        savedDesigns.push(newDesign);
-        localStorage.setItem("zenspace-designs", JSON.stringify(savedDesigns));
 
-        // Navigate to output page with design data
-        navigate("/output", { state: newDesign });
+        // Save to IndexedDB (non-blocking)
+        saveDesign(newDesign).catch((err) => {
+          console.error("Failed to save design:", err);
+        });
+
+        // Navigate to output page with full design data
+        navigate("/output", { 
+          state: { 
+            ...newDesign,
+            ...formData,
+            suggestions: data.suggestions,
+          } 
+        });
       }
     } catch (error: any) {
       console.error("Error generating design:", error);

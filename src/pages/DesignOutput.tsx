@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, RefreshCw, Sparkles, Home, Lightbulb, Palette, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { saveDesign, designExists } from "@/lib/designStorage";
 
 interface DesignData {
   id: string;
@@ -31,17 +32,19 @@ const DesignOutput = () => {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    if (location.state) {
-      const designData = location.state as DesignData;
-      setDesign(designData);
-      
-      // Check if this design is already saved
-      const savedDesigns = JSON.parse(localStorage.getItem("zenspace-designs") || "[]");
-      const isAlreadySaved = savedDesigns.some((d: DesignData) => d.id === designData.id);
-      setIsSaved(isAlreadySaved);
-    } else {
-      navigate("/design");
-    }
+    const checkSavedStatus = async () => {
+      if (location.state) {
+        const designData = location.state as DesignData;
+        setDesign(designData);
+        
+        // Check if this design is already saved in IndexedDB
+        const isAlreadySaved = await designExists(designData.id);
+        setIsSaved(isAlreadySaved);
+      } else {
+        navigate("/design");
+      }
+    };
+    checkSavedStatus();
   }, [location, navigate]);
 
   const handleDownload = () => {
@@ -64,28 +67,43 @@ const DesignOutput = () => {
     navigate("/design");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!design) return;
 
-    const savedDesigns = JSON.parse(localStorage.getItem("zenspace-designs") || "[]");
-    const alreadyExists = savedDesigns.some((d: DesignData) => d.id === design.id);
+    try {
+      const alreadyExists = await designExists(design.id);
 
-    if (alreadyExists) {
-      toast({
-        title: "Already Saved",
-        description: "This design is already in your gallery",
+      if (alreadyExists) {
+        toast({
+          title: "Already Saved",
+          description: "This design is already in your gallery",
+        });
+        return;
+      }
+
+      await saveDesign({
+        id: design.id,
+        roomType: design.roomType,
+        aesthetic: design.aesthetic,
+        mood: design.mood,
+        image: design.image,
+        timestamp: design.timestamp,
       });
-      return;
+      
+      setIsSaved(true);
+
+      toast({
+        title: "Design Saved",
+        description: "Your design has been saved to the gallery",
+      });
+    } catch (error) {
+      console.error("Failed to save design:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save design",
+        variant: "destructive",
+      });
     }
-
-    savedDesigns.push(design);
-    localStorage.setItem("zenspace-designs", JSON.stringify(savedDesigns));
-    setIsSaved(true);
-
-    toast({
-      title: "Design Saved",
-      description: "Your design has been saved to the gallery",
-    });
   };
 
   if (!design) return null;

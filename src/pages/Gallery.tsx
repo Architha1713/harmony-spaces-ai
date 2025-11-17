@@ -4,15 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Eye, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-
-interface SavedDesign {
-  id: string;
-  roomType: string;
-  aesthetic: string;
-  mood: string;
-  image: string;
-  timestamp: string;
-}
+import { getAllDesigns, deleteDesign, migrateFromLocalStorage, type SavedDesign } from "@/lib/designStorage";
 
 const Gallery = () => {
   const navigate = useNavigate();
@@ -23,21 +15,41 @@ const Gallery = () => {
     loadDesigns();
   }, []);
 
-  const loadDesigns = () => {
-    const saved = localStorage.getItem("zenspace-designs");
-    if (saved) {
-      setDesigns(JSON.parse(saved));
+  const loadDesigns = async () => {
+    try {
+      // Migrate old localStorage data if exists
+      await migrateFromLocalStorage();
+      // Load from IndexedDB
+      const savedDesigns = await getAllDesigns();
+      setDesigns(savedDesigns.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      ));
+    } catch (error) {
+      console.error("Failed to load designs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load designs",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDelete = (id: string) => {
-    const updated = designs.filter((d) => d.id !== id);
-    localStorage.setItem("zenspace-designs", JSON.stringify(updated));
-    setDesigns(updated);
-    toast({
-      title: "Design Deleted",
-      description: "The design has been removed from your gallery",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDesign(id);
+      setDesigns(designs.filter((d) => d.id !== id));
+      toast({
+        title: "Design Deleted",
+        description: "The design has been removed from your gallery",
+      });
+    } catch (error) {
+      console.error("Failed to delete design:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete design",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleView = (design: SavedDesign) => {
