@@ -60,12 +60,33 @@ serve(async (req) => {
     const aestheticPrompt = aestheticPrompts[aesthetic] || aesthetic;
     const notesPrompt = notes ? ` Additional details: ${notes}.` : "";
 
+    // Room type specific descriptions for accurate generation
+    const roomTypeDescriptions: Record<string, string> = {
+      bedroom: "a bedroom with a bed, nightstands, and sleeping area",
+      "living-room": "a living room with sofas, seating area, and entertainment space",
+      kitchen: "a kitchen with countertops, cabinets, appliances, and cooking area",
+      bathroom: "a bathroom with sink, toilet, shower or bathtub, and bathroom fixtures",
+      office: "a home office with desk, office chair, and work/productivity space",
+      dining: "a dining room with dining table, chairs, and eating area",
+    };
+
+    const roomDescription = roomTypeDescriptions[roomType] || `a ${roomType.replace("-", " ")}`;
+
     let messageContent;
     let imagePrompt;
 
     if (uploadedImage) {
-      // If user uploaded an image, use it for reference
-      imagePrompt = `Redesign this exact room maintaining its original layout, dimensions, and architectural features (walls, windows, doors, ceiling). Apply ${aestheticPrompt} style${colorPrompt} while preserving the room's structure. Transform with new furniture placement that matches the original layout, updated decor, and styling that creates a ${moodPrompt} atmosphere. Keep all structural elements like walls, floor plan, and window positions identical to the original. Ultra high resolution, professional interior photography.${notesPrompt}`;
+      // If user uploaded an image, explicitly mention room type and ensure it's respected
+      imagePrompt = `IMPORTANT: This MUST be redesigned as ${roomDescription}. Transform this room into a ${roomType.replace("-", " ")} with ${aestheticPrompt} style${colorPrompt}. 
+
+Requirements:
+- The output MUST clearly be a ${roomType.replace("-", " ")} with appropriate furniture and fixtures
+- Apply ${aestheticPrompt} design style throughout
+- Create a ${moodPrompt} atmosphere
+- Maintain similar room dimensions and layout where possible
+- Include furniture and elements specific to a ${roomType.replace("-", " ")}
+
+Ultra high resolution, professional interior photography.${notesPrompt}`;
       
       messageContent = [
         {
@@ -80,8 +101,14 @@ serve(async (req) => {
         },
       ];
     } else {
-      // Generate from scratch
-      imagePrompt = `Create a photorealistic interior design rendering of a ${roomType.replace("-", " ")} in ${aestheticPrompt} style${colorPrompt}. The design should evoke a ${moodPrompt} mood. Ultra high resolution, professional interior photography, 16:9 aspect ratio.${notesPrompt}`;
+      // Generate from scratch with explicit room type
+      imagePrompt = `Generate a photorealistic interior design of ${roomDescription}. 
+
+Style: ${aestheticPrompt}
+${colorScheme ? `Colors: ${colorSchemeMap[colorScheme] || colorScheme}` : ''}
+Atmosphere: ${moodPrompt}
+
+The image MUST clearly show a ${roomType.replace("-", " ")} with all appropriate furniture, fixtures, and design elements. Ultra high resolution, professional interior photography, 16:9 aspect ratio.${notesPrompt}`;
       
       messageContent = imagePrompt;
     }
